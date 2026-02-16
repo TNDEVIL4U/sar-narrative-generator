@@ -10,66 +10,36 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 
+# ------------------------------------------------------------
+# PAGE CONFIG
+# ------------------------------------------------------------
 st.set_page_config(
     page_title="AI Compliance Intelligence Platform",
     layout="wide"
 )
 
+# ------------------------------------------------------------
+# PROFESSIONAL FINTECH DARK THEME
+# ------------------------------------------------------------
 st.markdown("""
 <style>
 .stApp {
-    background-color: #ffffff;
-    color: #000000;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: #f1f5f9;
 }
-h1 { 
-    color: #000000; 
-    font-weight: 700;
-    border-bottom: 3px solid #000000;
-    padding-bottom: 10px;
-}
-h2, h3 {
-    color: #1a1a1a;
-}
-[data-testid="stSidebar"] { 
-    background-color: #f8f9fa;
-    border-right: 2px solid #e0e0e0;
-}
+h1 { color: #38bdf8; font-weight: 700; }
+[data-testid="stSidebar"] { background-color: #111827; }
 [data-testid="metric-container"] {
-    background: #ffffff;
-    border: 2px solid #000000;
+    background: #1e293b;
+    border: 1px solid #334155;
     padding: 15px;
-    border-radius: 8px;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    border-radius: 12px;
 }
 .stButton>button {
-    background-color: #000000;
+    background: linear-gradient(90deg, #3b82f6, #06b6d4);
     color: white;
-    border-radius: 6px;
+    border-radius: 8px;
     font-weight: 600;
-    border: 2px solid #000000;
-}
-.stButton>button:hover {
-    background-color: #333333;
-    border-color: #333333;
-}
-[data-testid="stExpander"] {
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-}
-.stTextArea textarea {
-    border: 2px solid #000000;
-}
-.stTabs [data-baseweb="tab-list"] {
-    gap: 8px;
-}
-.stTabs [data-baseweb="tab"] {
-    background-color: #f8f9fa;
-    border: 1px solid #000000;
-    color: #000000;
-}
-.stTabs [aria-selected="true"] {
-    background-color: #000000;
-    color: white;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -77,6 +47,7 @@ h2, h3 {
 st.title("🛡 AI Compliance Intelligence Platform")
 st.caption("Privacy-First | Offline LLM | AML Risk Engine")
 
+# Info box about modes
 with st.expander("ℹ️ How to use this platform", expanded=False):
     st.markdown("""
     ### Generation Modes:
@@ -102,12 +73,16 @@ with st.expander("ℹ️ How to use this platform", expanded=False):
     5. Edit and download
     """)
 
+
+# ------------------------------------------------------------
+# SIDEBAR
+# ------------------------------------------------------------
 with st.sidebar:
     st.header("⚙ Configuration")
     
     st.subheader("👤 Report Details")
-    officer_name = st.text_input("Compliance Officer Name", value="", placeholder="e.g., John Smith")
-    bank_branch = st.text_input("Bank Branch/Location", value="", placeholder="e.g., New York Main Branch")
+    officer_name = st.text_input("Compliance Officer Name", value="", placeholder="e.g., Devil")
+    bank_branch = st.text_input("Bank Branch/Location", value="", placeholder="e.g., Chennai")
     
     st.markdown("---")
     st.subheader("🤖 AI Settings")
@@ -135,25 +110,33 @@ with st.sidebar:
     
     advanced_mode = st.checkbox("Enable Detailed AI Analysis") if generation_mode == "🤖 AI Enhanced (30s)" else False
 
+# ------------------------------------------------------------
+# FILE UPLOAD
+# ------------------------------------------------------------
 uploaded_file = st.file_uploader("Upload Transaction CSV", type=["csv"])
 
+# ------------------------------------------------------------
+# OLLAMA - OPTIMIZED FOR SPEED
+# ------------------------------------------------------------
 def generate_sar_ai(prompt, model):
+    """Optimized LLM call with strict limits and validation"""
     url = "http://localhost:11434/api/generate"
     payload = {
         "model": model, 
         "prompt": prompt, 
         "stream": False,
         "options": {
-            "num_predict": 150,
+            "num_predict": 150,  # Limit output tokens drastically
             "temperature": 0.7,
             "top_p": 0.9,
-            "num_ctx": 1024
+            "num_ctx": 1024  # Reduce context window
         }
     }
     try:
-        response = requests.post(url, json=payload, timeout=25)
+        response = requests.post(url, json=payload, timeout=25)  # 25 second timeout
         if response.status_code == 200:
             result = response.json().get("response", "")
+            # Validate that we got meaningful content
             if result and len(result.strip()) > 20:
                 return result.strip()
         return None
@@ -164,7 +147,12 @@ def generate_sar_ai(prompt, model):
     except Exception as e:
         return None
 
+# ------------------------------------------------------------
+# FAST TEMPLATE GENERATOR
+# ------------------------------------------------------------
 def generate_sar_template(total_amount, unique_senders, tx_count, triggers, regime, risk_score):
+    """Instant template-based SAR generation"""
+    
     trigger_text = "\n".join([f"• {t}" for t in triggers])
     
     if risk_score >= 8:
@@ -190,19 +178,23 @@ Regulatory framework: {regime} compliance standards applied."""
 
     return narrative, action
 
+# ------------------------------------------------------------
+# PDF GENERATOR - ENHANCED FORMATTING
+# ------------------------------------------------------------
 def generate_pdf(report_text):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, topMargin=0.75*inch, bottomMargin=0.75*inch)
     elements = []
     styles = getSampleStyleSheet()
 
+    # Custom styles
     header_style = ParagraphStyle(
         "Header",
         parent=styles["Heading1"],
         fontSize=20,
-        textColor=colors.HexColor("#000000"),
+        textColor=colors.HexColor("#0033A1"),
         spaceAfter=16,
-        alignment=1,
+        alignment=1,  # Center alignment
         fontName="Helvetica-Bold"
     )
     
@@ -237,10 +229,12 @@ def generate_pdf(report_text):
         fontName="Helvetica"
     )
 
+    # Header
     elements.append(Paragraph("SUSPICIOUS ACTIVITY REPORT", header_style))
-    elements.append(HRFlowable(width="100%", thickness=2, color=colors.HexColor("#000000")))
+    elements.append(HRFlowable(width="100%", thickness=2, color=colors.HexColor("#0033A1")))
     elements.append(Spacer(1, 0.3 * inch))
 
+    # Parse and format the report text
     lines = report_text.split('\n')
     current_section = None
     
@@ -251,22 +245,27 @@ def generate_pdf(report_text):
             elements.append(Spacer(1, 0.1 * inch))
             continue
         
+        # Main headers (all caps followed by colon)
         if line.endswith(':') and line.isupper() and len(line) < 50:
             elements.append(Paragraph(line, section_header_style))
             current_section = line
         
+        # Bullet points
         elif line.startswith('•') or line.startswith('-'):
             clean_line = line.lstrip('•- ').strip()
             elements.append(Paragraph(f"• {clean_line}", bullet_style))
         
+        # Key-value pairs (e.g., "Risk Level: HIGH RISK")
         elif ':' in line and len(line.split(':')[0]) < 40:
             key, value = line.split(':', 1)
             formatted = f"<b>{key}:</b> {value.strip()}"
             elements.append(Paragraph(formatted, body_style))
         
+        # Skip the title if it appears again
         elif line == "SUSPICIOUS ACTIVITY REPORT":
             continue
         
+        # Regular paragraphs
         else:
             elements.append(Paragraph(line, body_style))
 
@@ -274,6 +273,9 @@ def generate_pdf(report_text):
     buffer.seek(0)
     return buffer
 
+# ------------------------------------------------------------
+# RISK LEVEL
+# ------------------------------------------------------------
 def get_risk_level(score):
     if score >= 8:
         return "🔴 HIGH RISK"
@@ -282,6 +284,9 @@ def get_risk_level(score):
     else:
         return "🟢 LOW RISK"
 
+# ------------------------------------------------------------
+# MAIN LOGIC
+# ------------------------------------------------------------
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
 
@@ -311,6 +316,9 @@ if uploaded_file:
 
     risk_level = get_risk_level(risk_score)
 
+    # --------------------------------------------------------
+    # METRICS
+    # --------------------------------------------------------
     col1, col2, col3, col4, col5 = st.columns(5)
     col1.metric("Total Amount", f"${total_amount:,.0f}")
     col2.metric("Transactions", len(df))
@@ -318,33 +326,25 @@ if uploaded_file:
     col4.metric("Risk Score", risk_score)
     col5.metric("Risk Level", risk_level)
 
+    # --------------------------------------------------------
+    # GAUGE
+    # --------------------------------------------------------
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=risk_score,
-        gauge={
-            'axis': {'range': [0, 15]},
-            'bar': {'color': "black"},
-            'steps': [
-                {'range': [0, 4], 'color': "#e0e0e0"},
-                {'range': [4, 8], 'color': "#bdbdbd"},
-                {'range': [8, 15], 'color': "#9e9e9e"}
-            ],
-            'threshold': {
-                'line': {'color': "red", 'width': 4},
-                'thickness': 0.75,
-                'value': risk_score
-            }
-        }
+        gauge={'axis': {'range': [0, 15]}}
     ))
-    fig.update_layout(
-        paper_bgcolor='white',
-        font={'color': "black", 'family': "Arial"}
-    )
     st.plotly_chart(fig, use_container_width=True)
 
+    # --------------------------------------------------------
+    # FULL PREVIEW
+    # --------------------------------------------------------
     st.subheader("📊 Full Transaction Dataset Preview")
     st.dataframe(df, use_container_width=True)
 
+    # --------------------------------------------------------
+    # TRIGGERS DISPLAY
+    # --------------------------------------------------------
     st.subheader("⚠ Triggered Rules")
     if triggers:
         for t in triggers:
@@ -352,12 +352,16 @@ if uploaded_file:
     else:
         st.info("No suspicious activity detected.")
 
+    # --------------------------------------------------------
+    # SAR GENERATION
+    # --------------------------------------------------------
     if triggers:
         if st.button("🚀 Generate Professional SAR", type="primary", use_container_width=True):
             
             use_ai = generation_mode == "🤖 AI Enhanced (30s)"
             
             if use_ai:
+                # Check if Ollama is accessible first
                 try:
                     test_response = requests.get("http://localhost:11434/api/tags", timeout=2)
                     ollama_available = test_response.status_code == 200
@@ -369,6 +373,7 @@ if uploaded_file:
                     use_ai = False
             
             if use_ai:
+                # OPTIMIZED AI MODE - Much shorter prompt
                 short_prompt = f"""Write 2-3 sentences analyzing suspicious financial activity:
 Amount: ${total_amount:,.0f}, Senders: {unique_senders}, Issues: {', '.join(triggers[:2])}
 Focus on money laundering risk."""
@@ -384,12 +389,14 @@ Focus on money laundering risk."""
                 progress_bar.progress(100)
                 
                 if ai_narrative and len(ai_narrative) > 20:
+                    # AI succeeded - use it
                     narrative = ai_narrative
                     action = f"Enhanced Due Diligence and Regulatory Filing as per {regime}."
                     status_text.empty()
                     progress_bar.empty()
                     st.success("✅ AI-enhanced narrative generated successfully!")
                 else:
+                    # AI timeout/failed - fallback to template
                     status_text.empty()
                     progress_bar.empty()
                     st.warning("⏱️ AI took too long - generated professional template report instead")
@@ -398,6 +405,7 @@ Focus on money laundering risk."""
                         total_amount, unique_senders, len(df), triggers, regime, risk_score
                     )
             else:
+                # FAST TEMPLATE MODE - Instant
                 with st.spinner("⚡ Generating report..."):
                     narrative, action = generate_sar_template(
                         total_amount, unique_senders, len(df), triggers, regime, risk_score
@@ -443,15 +451,20 @@ Report Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}
                 "ai_used": use_ai and ai_narrative is not None
             }
 
+# ------------------------------------------------------------
+# EXPORT SECTION WITH IN-PAGE EDITING
+# ------------------------------------------------------------
 if "sar" in st.session_state:
     st.markdown("---")
     st.subheader("📝 Professional SAR - Review & Edit")
     
+    # Tabs for different views
     tab1, tab2 = st.tabs(["✏️ Edit Report", "👁️ Preview"])
     
     with tab1:
         st.info("💡 **Tip**: Edit the report directly below. Your changes will be reflected in downloads.")
         
+        # Editable text area with better height
         edited = st.text_area(
             "Report Content", 
             st.session_state["sar"], 
@@ -459,8 +472,10 @@ if "sar" in st.session_state:
             help="Edit any section of the report. Changes auto-save for download."
         )
         
+        # Update session state with edits
         st.session_state["sar_edited"] = edited
         
+        # Quick edit helpers
         st.markdown("#### 🔧 Quick Actions")
         col1, col2, col3, col4 = st.columns(4)
         
@@ -485,6 +500,7 @@ if "sar" in st.session_state:
     st.markdown("---")
     st.subheader("⬇️ Download Options")
     
+    # Use edited version for downloads
     final_report = st.session_state.get("sar_edited", edited)
     
     col1, col2, col3 = st.columns(3)
